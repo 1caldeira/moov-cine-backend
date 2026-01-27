@@ -1,6 +1,8 @@
 using FilmesAPI.Data;
 using FilmesAPI.Models;
-using Microsoft.EntityFrameworkCore; // Garanta que isso esteja aqui se precisar
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
+using System.Reflection; 
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,9 +12,17 @@ builder.Services.AddDbContext<FilmeContext>(opts => opts.UseMySql(connectionStri
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "FilmesAPI", Version = "v1" });
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddControllers().AddNewtonsoftJson();
+
+
 
 var app = builder.Build();
 
