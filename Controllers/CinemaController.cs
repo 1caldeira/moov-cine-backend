@@ -11,10 +11,10 @@ namespace FilmesAPI.Controllers;
 [Route("[controller]")]
 public class CinemaController : ControllerBase
 {
-    private FilmeContext _context;
+    private AppDbContext _context;
     private IMapper _mapper;
 
-    public CinemaController(FilmeContext context, IMapper mapper)
+    public CinemaController(AppDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
@@ -25,7 +25,8 @@ public class CinemaController : ControllerBase
         Cinema cinema = _mapper.Map<Cinema>(cinemaDTO);
         _context.Cinemas.Add(cinema);
         _context.SaveChanges();
-        return CreatedAtAction(nameof(ObterCinemaPorId), new { Id = cinema.Id }, cinemaDTO);
+        ReadCinemaDTO ReadCinemaDTO = _mapper.Map<ReadCinemaDTO>(cinema);
+        return CreatedAtAction(nameof(ObterCinemaPorId), new { Id = cinema.Id }, ReadCinemaDTO);
     }
 
     [HttpGet("{id}")]
@@ -38,9 +39,12 @@ public class CinemaController : ControllerBase
     }
     [HttpGet]
     public IEnumerable<ReadCinemaDTO> ObterCinemas([FromQuery] int skip = 0, [FromQuery] int take = 25) {
-        IEnumerable<ReadCinemaDTO> cinemas = _mapper.Map<List<ReadCinemaDTO>>(_context.Cinemas.Skip(skip).Take(take));
-        return cinemas;
+
+        var listaDeCinemas = _context.Cinemas.Skip(skip).Take(take).ToList();
+
+        return _mapper.Map<List<ReadCinemaDTO>>(listaDeCinemas);
     }
+    
 
     [HttpPatch("{id}")]
     public IActionResult AtualizaCinemaParcial(int id, JsonPatchDocument<UpdateCinemaDTO> patch) {

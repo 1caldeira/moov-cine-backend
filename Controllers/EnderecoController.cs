@@ -11,10 +11,10 @@ namespace FilmesAPI.Controllers;
 [Route("[controller]")]
 public class EnderecoController : ControllerBase
 {
-    private FilmeContext _context;
+    private AppDbContext _context;
     private IMapper _mapper;
 
-    public EnderecoController(FilmeContext context, IMapper mapper)
+    public EnderecoController(AppDbContext context, IMapper mapper)
     {
         _context = context;
         _mapper = mapper;
@@ -25,7 +25,10 @@ public class EnderecoController : ControllerBase
         Endereco Endereco = _mapper.Map<Endereco>(EnderecoDTO);
         _context.Enderecos.Add(Endereco);
         _context.SaveChanges();
-        return CreatedAtAction(nameof(ObterEnderecoPorId), new { Id = Endereco.Id }, EnderecoDTO);
+
+        ReadEnderecoDTO ReadEnderecoDTO = _mapper.Map<ReadEnderecoDTO>(Endereco);
+
+        return CreatedAtAction(nameof(ObterEnderecoPorId), new { Id = Endereco.Id }, ReadEnderecoDTO);
     }
 
     [HttpGet("{id}")]
@@ -38,7 +41,8 @@ public class EnderecoController : ControllerBase
     }
     [HttpGet]
     public IEnumerable<ReadEnderecoDTO> ObterEnderecos([FromQuery] int skip = 0, [FromQuery] int take = 25) {
-        IEnumerable<ReadEnderecoDTO> Enderecos = _mapper.Map<List<ReadEnderecoDTO>>(_context.Enderecos.Skip(skip).Take(take));
+        var enderecos = _context.Enderecos.Skip(skip).Take(take).ToList();
+        IEnumerable<ReadEnderecoDTO> Enderecos = _mapper.Map<List<ReadEnderecoDTO>>(enderecos);
         return Enderecos;
     }
 
