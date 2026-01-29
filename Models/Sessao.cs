@@ -17,4 +17,6 @@ public class Sessao
     public DateTime Horario { get; set; }
     [Required]
     public int Sala { get; set; }
+
+    public static int ToleranciaAtrasoMinutos = 20;
 }

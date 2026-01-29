@@ -13,7 +13,7 @@ public class SessaoController : ControllerBase
 {
     private AppDbContext _context;
     private IMapper _mapper;
-    private const int ToleranciaAtrasoMinutos = 20;
+    
 
     public SessaoController(AppDbContext context, IMapper mapper)
     {
@@ -45,7 +45,7 @@ public class SessaoController : ControllerBase
 
         if (apenasDisponiveis)
         {
-            query = query.Where(s => s.Horario.AddMinutes(ToleranciaAtrasoMinutos) > DateTime.Now);
+            query = query.Where(s => s.Horario.AddMinutes(Sessao.ToleranciaAtrasoMinutos) > DateTime.Now);
         }
 
         query = query.OrderBy(s => s.Horario);

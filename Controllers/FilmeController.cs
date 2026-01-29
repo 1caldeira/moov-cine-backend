@@ -4,6 +4,8 @@ using FilmesAPI.Data.DTOs;
 using FilmesAPI.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace FilmesAPI.Controllers;
 
@@ -48,11 +50,24 @@ public class FilmeController : ControllerBase
     /// <response code="200">Retorna a lista de filmes com sucesso</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IEnumerable<ReadFilmeDTO> ObterFilmes([FromQuery] int skip = 0, [FromQuery] int take = 25, [FromQuery] int? cinemaId = null) {
+    public IEnumerable<ReadFilmeDTO> ObterFilmes([FromQuery] int skip = 0, 
+        [FromQuery] int take = 25, 
+        [FromQuery] int? cinemaId = null,
+        [FromQuery] string? nomeFilme = null,
+        [FromQuery] bool apenasDisponiveis = true) {
+        
         var query = _context.Filmes.AsQueryable();
+        
         if (cinemaId != null) {
             query = query.Where(f => f.Sessoes.Any(s => s.CinemaId == cinemaId));
         }
+        if (!string.IsNullOrEmpty(nomeFilme)) {
+            query = query.Where(f => f.Titulo.Contains(nomeFilme));
+        }
+        if (apenasDisponiveis) { 
+        query = query.Include(f => f.Sessoes.Where(s => s.Horario.AddMinutes(Sessao.ToleranciaAtrasoMinutos) >= DateTime.Now));
+        }
+
         return _mapper.Map<List<ReadFilmeDTO>>(query.OrderBy(f => f.Titulo).Skip(skip).Take(take).ToList());
     }
 
