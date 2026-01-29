@@ -52,7 +52,7 @@ public class EnderecoController : ControllerBase
         if (Endereco == null) return NotFound();
         UpdateEnderecoDTO EnderecoDTO = _mapper.Map<UpdateEnderecoDTO>(Endereco);
         patch.ApplyTo(EnderecoDTO, ModelState);
-        if (!TryValidateModel(Endereco)) {
+        if (!TryValidateModel(EnderecoDTO)) {
             return ValidationProblem(ModelState);
         }
         _mapper.Map(EnderecoDTO, Endereco);

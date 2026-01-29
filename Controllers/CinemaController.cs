@@ -52,7 +52,7 @@ public class CinemaController : ControllerBase
         if (cinema == null) return NotFound();
         UpdateCinemaDTO cinemaDTO = _mapper.Map<UpdateCinemaDTO>(cinema);
         patch.ApplyTo(cinemaDTO, ModelState);
-        if (!TryValidateModel(cinema)) {
+        if (!TryValidateModel(cinemaDTO)) {
             return ValidationProblem(ModelState);
         }
         _mapper.Map(cinemaDTO, cinema);
