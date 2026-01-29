@@ -3,11 +3,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FilmesAPI.Data.DTOs;
 
-public class ReadSessaoDTO
+public class ReadSessaoSimpleDTO
 {
     
     public int Id { get; set; }
-    public ReadFilmeSimpleDTO Filme { get; set; }
     public string Horario { get; set; }
     public int Sala { get; set; }
 }

@@ -13,6 +13,7 @@ public class SessaoController : ControllerBase
 {
     private AppDbContext _context;
     private IMapper _mapper;
+    private const int ToleranciaAtrasoMinutos = 20;
 
     public SessaoController(AppDbContext context, IMapper mapper)
     {
@@ -38,11 +39,20 @@ public class SessaoController : ControllerBase
         return Ok(SessaoDTO);
     }
     [HttpGet]
-    public IEnumerable<ReadSessaoDTO> ObterSessoes([FromQuery] int skip = 0, [FromQuery] int take = 25) {
+    public IEnumerable<ReadSessaoDTO> ObterSessoes([FromQuery] int skip = 0, [FromQuery] int take = 25, [FromQuery] bool apenasDisponiveis = true) {
+        
+        var query = _context.Sessoes.AsQueryable();
 
-        var listaDeSessaos = _context.Sessoes.Skip(skip).Take(take).ToList();
+        if (apenasDisponiveis)
+        {
+            query = query.Where(s => s.Horario.AddMinutes(ToleranciaAtrasoMinutos) > DateTime.Now);
+        }
 
-        return _mapper.Map<List<ReadSessaoDTO>>(listaDeSessaos);
+        query = query.OrderBy(s => s.Horario);
+
+        var listaDeSessoes = query.Skip(skip).Take(take).ToList();
+
+        return _mapper.Map<List<ReadSessaoDTO>>(listaDeSessoes);
     }
     
 

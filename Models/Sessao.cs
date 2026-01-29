@@ -15,6 +15,6 @@ public class Sessao
     public virtual Cinema Cinema { get; set; }
     [Required]
     public DateTime Horario { get; set; }
-
-
+    [Required]
+    public int Sala { get; set; }
 }

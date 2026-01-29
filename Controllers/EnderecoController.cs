@@ -41,8 +41,8 @@ public class EnderecoController : ControllerBase
     }
     [HttpGet]
     public IEnumerable<ReadEnderecoDTO> ObterEnderecos([FromQuery] int skip = 0, [FromQuery] int take = 25) {
-        var enderecos = _context.Enderecos.Skip(skip).Take(take).ToList();
-        IEnumerable<ReadEnderecoDTO> Enderecos = _mapper.Map<List<ReadEnderecoDTO>>(enderecos);
+        IEnumerable<ReadEnderecoDTO> Enderecos = _mapper.Map<List<ReadEnderecoDTO>>(_context.
+            Enderecos.OrderBy(e => e.Id).Skip(skip).Take(take).ToList());
         return Enderecos;
     }
 

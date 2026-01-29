@@ -13,4 +13,7 @@ public class CreateSessaoDTO
     [Required(ErrorMessage = "O campo horário é obrigatório")]
     public DateTime Horario { get; set; }
 
+    [Required(ErrorMessage = "O campo sala é obrigatorio")]
+    public int Sala { get; set; }
+
 }

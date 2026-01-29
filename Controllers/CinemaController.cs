@@ -40,7 +40,7 @@ public class CinemaController : ControllerBase
     [HttpGet]
     public IEnumerable<ReadCinemaDTO> ObterCinemas([FromQuery] int skip = 0, [FromQuery] int take = 25) {
 
-        var listaDeCinemas = _context.Cinemas.Skip(skip).Take(take).ToList();
+        var listaDeCinemas = _context.Cinemas.OrderBy(c => c.Nome).Skip(skip).Take(take).ToList();
 
         return _mapper.Map<List<ReadCinemaDTO>>(listaDeCinemas);
     }

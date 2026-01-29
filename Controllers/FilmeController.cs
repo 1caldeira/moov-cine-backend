@@ -49,7 +49,7 @@ public class FilmeController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IEnumerable<ReadFilmeDTO> ObterFilmes([FromQuery] int skip = 0, [FromQuery] int take = 25) {
-        return _mapper.Map<List<ReadFilmeDTO>>(_context.Filmes.Skip(skip).Take(take).ToList());
+        return _mapper.Map<List<ReadFilmeDTO>>(_context.Filmes.OrderBy(f => f.Titulo).Skip(skip).Take(take).ToList());
     }
 
     /// <summary>
