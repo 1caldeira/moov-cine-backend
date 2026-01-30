@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using FilmesAPI.Data;
-using FilmesAPI.Data.DTOs;
 using FilmesAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.JsonPatch;
+using FilmesAPI.Data.DTOs.Cinema;
 
 namespace FilmesAPI.Controllers;
 

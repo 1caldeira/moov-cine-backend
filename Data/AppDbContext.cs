@@ -1,9 +1,10 @@
 ﻿using FilmesAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace FilmesAPI.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<Usuario>
 {
     public AppDbContext(DbContextOptions<AppDbContext> opts) : base(opts)
     {
@@ -12,6 +13,7 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        base.OnModelCreating(builder);
         // protege endereço e cinema de serem deletados em cascata
         builder.Entity<Endereco>()
             .HasOne(endereco => endereco.Cinema)

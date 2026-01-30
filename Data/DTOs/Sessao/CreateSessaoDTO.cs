@@ -1,7 +1,7 @@
 ﻿using FilmesAPI.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace FilmesAPI.Data.DTOs;
+namespace FilmesAPI.Data.DTOs.Sessao;
 
 public class CreateSessaoDTO
 {
