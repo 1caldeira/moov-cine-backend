@@ -19,4 +19,5 @@ public class Sessao
     public int Sala { get; set; }
 
     public static int ToleranciaAtrasoMinutos = 20;
+    public DateTime? DataExclusao { get; set; }
 }

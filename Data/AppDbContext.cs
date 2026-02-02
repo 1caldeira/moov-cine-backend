@@ -14,11 +14,19 @@ public class AppDbContext : IdentityDbContext<Usuario>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        //SOFT DELETE
+        builder.Entity<Filme>().HasQueryFilter(filme => filme.DataExclusao == null);
+        builder.Entity<Cinema>().HasQueryFilter(cinema => cinema.DataExclusao == null);
+        builder.Entity<Endereco>().HasQueryFilter(endereco => endereco.DataExclusao == null);
+        builder.Entity<Sessao>().HasQueryFilter(sessao => sessao.DataExclusao == null);
+
         // protege endereço e cinema de serem deletados em cascata
         builder.Entity<Endereco>()
             .HasOne(endereco => endereco.Cinema)
             .WithOne(cinema => cinema.Endereco)
             .OnDelete(DeleteBehavior.Restrict);
+
 
         // protege as sessões de sumirem se alguém tentar apagar o cinema
         builder.Entity<Sessao>()

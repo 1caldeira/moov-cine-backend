@@ -15,6 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(opts =>
     ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddIdentity<Usuario, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -26,6 +27,8 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<UsuarioService>();
+builder.Services.AddScoped<CinemaService>();
+builder.Services.AddScoped<EnderecoService>();
 
 
 builder.Services.AddControllers().AddNewtonsoftJson(options =>

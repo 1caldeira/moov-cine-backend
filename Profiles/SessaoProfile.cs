@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using FilmesAPI.Data.DTOs.Sessao;
+using FilmesAPI.Data.DTO;
 using FilmesAPI.Models;
 
 

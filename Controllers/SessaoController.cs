@@ -3,7 +3,7 @@ using FilmesAPI.Data;
 using FilmesAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.JsonPatch;
-using FilmesAPI.Data.DTOs.Sessao;
+using FilmesAPI.Data.DTO;
 
 namespace FilmesAPI.Controllers;
 

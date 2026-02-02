@@ -1,8 +1,5 @@
-﻿using AutoMapper;
-using FilmesAPI.Data.DTOs.Usuario;
-using FilmesAPI.Models;
+﻿using FilmesAPI.Data.DTO;
 using FilmesAPI.Services;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FilmesAPI.Controllers;

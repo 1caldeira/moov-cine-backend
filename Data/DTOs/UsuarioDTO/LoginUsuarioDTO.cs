@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FilmesAPI.Data.DTOs.Usuario;
+namespace FilmesAPI.Data.DTO;
 
 public class LoginUsuarioDTO
 {

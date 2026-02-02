@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
-using FilmesAPI.Data.DTOs;
-using FilmesAPI.Data.DTOs.Usuario;
+using FilmesAPI.Data.DTO;
 using FilmesAPI.Models;
 using Microsoft.AspNetCore.Identity;
 
