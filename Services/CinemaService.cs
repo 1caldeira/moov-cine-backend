@@ -56,13 +56,13 @@ public class CinemaService
         return _mapper.Map<UpdateCinemaDTO>(cinema);
     }
 
-    public bool AtualizaCinema(int id, UpdateCinemaDTO cinemaDto)
+    public Result AtualizaCinema(int id, UpdateCinemaDTO cinemaDto)
     {
         var cinema = _context.Cinemas.FirstOrDefault(c => c.Id == id);
-        if (cinema == null) return false; 
+        if (cinema == null) return Result.Fail(ErroNaoEncontrado); 
         _mapper.Map(cinemaDto, cinema);
         _context.SaveChanges();
-        return true;
+        return Result.Ok();
     }
 
     public Result DeletaCinema(int id)

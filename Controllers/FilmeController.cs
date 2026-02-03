@@ -1,10 +1,9 @@
-﻿using AutoMapper;
-using FilmesAPI.Data;
-using FilmesAPI.Data.DTO;
-using FilmesAPI.Models;
+﻿using FilmesAPI.Data.DTO;
+using FluentResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using FilmesAPI.Services;
+
 
 namespace FilmesAPI.Controllers;
 
@@ -12,13 +11,12 @@ namespace FilmesAPI.Controllers;
 [Route("[controller]")]
 public class FilmeController : ControllerBase
 {
-    private AppDbContext _context;
-    private IMapper _mapper;
+    private FilmeService _filmeService;
 
-    public FilmeController(AppDbContext context, IMapper mapper)
+    public FilmeController(FilmeService filmeService)
     {
-        _context = context;
-        _mapper = mapper;
+
+         _filmeService = filmeService;
     }
 
     /// <summary>
@@ -30,88 +28,63 @@ public class FilmeController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     public IActionResult AdicionaFilme([FromBody] CreateFilmeDTO filmeDTO) {
-        Filme filme = _mapper.Map<Filme>(filmeDTO);
-        _context.Filmes.Add(filme);
-        _context.SaveChanges();
+        ReadFilmeDTO filme = _filmeService.AdicionaFilme(filmeDTO);
         return CreatedAtAction(nameof(ObterFilmesPorId), new {id = filme.Id}, filme);
     }
 
     /// <summary>
-    /// Recupera uma lista de filmes do banco de dados
+    /// Recupera uma lista de filmes do banco de dados com filtros opcionais
     /// </summary>
     /// <remarks>
+    /// Permite paginação e filtragem por cinema, nome ou disponibilidade.
     /// Exemplo de requisição:
-    /// GET /filme?skip=0&take=10
+    /// GET /filme?skip=0&take=10&nomeFilme=Batman
     /// </remarks>
-    /// <param name="skip">Número de registros a serem ignorados (paginação)</param>
-    /// <param name="take">Número de registros a serem recuperados (paginação)</param>
-    /// <returns>Uma lista de objetos de filme</returns>
+    /// <param name="filtro">Objeto contendo os parâmetros de filtro e paginação (Skip, Take, CinemaId, NomeFilme, ApenasDisponiveis)</param>
+    /// <returns>Uma lista de objetos de filme filtrada</returns>
     /// <response code="200">Retorna a lista de filmes com sucesso</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IEnumerable<ReadFilmeDTO> ObterFilmes([FromQuery] int skip = 0, 
-        [FromQuery] int take = 25, 
-        [FromQuery] int? cinemaId = null,
-        [FromQuery] string? nomeFilme = null,
-        [FromQuery] bool apenasDisponiveis = true) {
-        
-        var query = _context.Filmes.AsQueryable();
-        
-        if (cinemaId != null) {
-            query = query.Where(f => f.Sessoes.Any(s => s.CinemaId == cinemaId));
-        }
-        if (!string.IsNullOrEmpty(nomeFilme)) {
-            query = query.Where(f => f.Titulo.Contains(nomeFilme));
-        }
-        if (apenasDisponiveis) { 
-        query = query.Include(f => f.Sessoes.Where(s => s.Horario.AddMinutes(Sessao.ToleranciaAtrasoMinutos) >= DateTime.Now));
-        }
-
-        return _mapper.Map<List<ReadFilmeDTO>>(query.OrderBy(f => f.Titulo).Skip(skip).Take(take).ToList());
+    public ActionResult ObterFilmes([FromQuery] FiltroFilmeDTO filtro) {
+        List<ReadFilmeDTO> filmes = _filmeService.ObterFilmes(filtro);
+        return Ok(filmes);
     }
 
     /// <summary>
-    /// Recupera um filme do banco de dados
+    /// Recupera um filme específico do banco de dados por ID
     /// </summary>
-    /// <remarks>
-    /// Exemplo de requisição:
-    /// GET /filme/1
-    /// </remarks>
-    /// <param name="id">Id do filme a ser recuperado</param>
-    /// <returns>Um objeto filme</returns>
+    /// <param name="id">O ID numérico do filme a ser recuperado</param>
+    /// <returns>Um objeto com os detalhes do filme</returns>
     /// <response code="200">Retorna o objeto filme com sucesso</response>
     /// <response code="404">Caso o ID do filme não seja encontrado</response>
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult ObterFilmesPorId(int id) {
-        var filme = _context.Filmes.FirstOrDefault(f => f.Id == id);
-        if (filme == null) return NotFound();
-        ReadFilmeDTO dto = _mapper.Map<ReadFilmeDTO>(filme);
+        ReadFilmeDTO dto = _filmeService.ObterFilmesPorId(id);
+        if (dto == null) return NotFound();
         return Ok(dto);
     }
+
     /// <summary>
-    /// Atualiza um filme no banco de dados
+    /// Atualiza todos os dados de um filme existente
     /// </summary>
-    /// <param name="id">Id do filme a ser atualizado</param>
-    /// <param name="filmeDTO">Objeto com os campos necessários para atualização de um filme</param>
+    /// <param name="id">O ID do filme a ser atualizado</param>
+    /// <param name="filmeDTO">Objeto com os novos dados do filme</param>
     /// <returns>Sem conteúdo</returns>
     /// <response code="204">Caso a atualização seja feita com sucesso</response>
-    /// <response code="404">Caso o id do filme não seja encontrado</response>
+    /// <response code="404">Caso o ID do filme não seja encontrado</response>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult AtualizaFilme(int id, [FromBody] UpdateFilmeDTO filmeDTO)
     {
-        var filme = _context.Filmes.FirstOrDefault(f => f.Id == id);
-        if (filme == null) return NotFound();
-
-        _mapper.Map(filmeDTO, filme);
-        _context.SaveChanges();
+        Result result = _filmeService.AtualizaFilme(id, filmeDTO);
+        if (result.IsFailed) return NotFound();
         return NoContent();
     }
 
     /// <summary>
-    /// Atualiza parcialmente um filme no banco de dados usando JSON Patch
+    /// Atualiza parcialmente um filme usando JSON Patch
     /// </summary>
     /// <remarks>
     /// Exemplo de corpo da requisição (JSON Patch):
@@ -119,49 +92,60 @@ public class FilmeController : ControllerBase
     ///   { "op": "replace", "path": "/titulo", "value": "Novo Título" }
     /// ]
     /// </remarks>
-    /// <param name="id">Id do filme a ser atualizado</param>
+    /// <param name="id">O ID do filme a ser atualizado</param>
     /// <param name="patch">O documento JSON Patch com as alterações desejadas</param>
     /// <returns>Sem conteúdo</returns>
     /// <response code="204">Caso a atualização parcial seja feita com sucesso</response>
-    /// <response code="400">Caso o corpo da requisição esteja inválido ou mal formatado</response>
-    /// <response code="404">Caso o id do filme não seja encontrado</response>
+    /// <response code="400">Caso o corpo da requisição seja inválido ou viole regras de negócio</response>
+    /// <response code="404">Caso o ID do filme não seja encontrado</response>
     [HttpPatch("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult AtualizaFilmeParcial(int id, JsonPatchDocument<UpdateFilmeDTO> patch)
     {
-        var filme = _context.Filmes.FirstOrDefault(f => f.Id == id);
-        if (filme == null) return NotFound();
-
-        UpdateFilmeDTO filmeParaAtualizar = _mapper.Map<UpdateFilmeDTO>(filme);
+        var filmeParaAtualizar = _filmeService.RecuperaFilmeParaAtualizar(id);
+        if (filmeParaAtualizar == null) return NotFound();
         patch.ApplyTo(filmeParaAtualizar, ModelState);
-
         if (!TryValidateModel(filmeParaAtualizar))
         {
             return ValidationProblem(ModelState);
         }
-        _mapper.Map(filmeParaAtualizar, filme);
-        _context.SaveChanges();
+
+        var resultado = _filmeService.AtualizaFilme(id, filmeParaAtualizar);
+
+        if (resultado.IsFailed)
+        {
+            return BadRequest(resultado.Errors);
+        }
+
         return NoContent();
     }
 
     /// <summary>
-    /// Deleta um filme do banco de dados
+    /// Realiza a exclusão lógica (Soft Delete) de um filme
     /// </summary>
-    /// <param name="id">Id do filme a ser removido</param>
+    /// <remarks>
+    /// O registro não é removido fisicamente, apenas marcado como excluído.
+    /// A exclusão será bloqueada se houver sessões futuras vinculadas ao filme.
+    /// </remarks>
+    /// <param name="id">O ID do filme a ser excluído</param>
     /// <returns>Sem conteúdo</returns>
-    /// <response code="204">Caso o filme seja deletado com sucesso</response>
-    /// <response code="404">Caso o id do filme não seja encontrado</response>
+    /// <response code="204">Caso o filme seja marcado como excluído com sucesso</response>
+    /// <response code="400">Caso existam regras de negócio impedindo a exclusão (ex: sessões futuras)</response>
+    /// <response code="404">Caso o ID do filme não seja encontrado</response>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult DeletaFilme(int id)
     {
-        var filme = _context.Filmes.FirstOrDefault(f => f.Id == id);
-        if (filme == null) return NotFound();
-        _context.Remove(filme);
-        _context.SaveChanges();
+        Result result = _filmeService.DeletaFilme(id);
+        if (result.IsFailed) {
+            if (result.Errors.Any(r => r.Message.Equals(FilmeService.ErroNaoEncontrado))) {  
+                return NotFound(); 
+            }
+            return BadRequest(result.Errors); 
+        }
         return NoContent();
     }
 }

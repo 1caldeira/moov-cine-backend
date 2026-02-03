@@ -29,6 +29,8 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<CinemaService>();
 builder.Services.AddScoped<EnderecoService>();
+builder.Services.AddScoped<FilmeService>();
+builder.Services.AddScoped<SessaoService>();
 
 
 builder.Services.AddControllers().AddNewtonsoftJson(options =>

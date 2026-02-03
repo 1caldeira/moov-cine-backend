@@ -3,6 +3,7 @@ using FilmesAPI.Services;
 using FluentResults;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using FluentResults;
 
 
 namespace FilmesAPI.Controllers;
@@ -49,14 +50,20 @@ public class CinemaController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
-        _cinemaService.AtualizaCinema(id, cinemaParaAtualizar);
+        var resultado = _cinemaService.AtualizaCinema(id, cinemaParaAtualizar);
+
+        if (resultado.IsFailed)
+        {
+            return BadRequest(resultado.Errors);
+        }
+
         return NoContent();
     }
 
     [HttpPut("{id}")]
     public IActionResult AtualizaCinema(int id, UpdateCinemaDTO cinemaDTO) {
-        bool sucesso = _cinemaService.AtualizaCinema(id, cinemaDTO);
-        if (!sucesso) return NotFound();
+        Result result = _cinemaService.AtualizaCinema(id, cinemaDTO);
+        if (result.IsFailed) return NotFound();
         return NoContent();
     }
 

@@ -47,7 +47,13 @@ public class EnderecoController : ControllerBase
             return ValidationProblem(ModelState);
         }
 
-        _enderecoService.AtualizaEndereco(id, enderecoParaAtualizar);
+        var resultado = _enderecoService.AtualizaEndereco(id, enderecoParaAtualizar);
+
+        if (resultado.IsFailed)
+        {
+            return BadRequest(resultado.Errors);
+        }
+
         return NoContent();
     }
 
