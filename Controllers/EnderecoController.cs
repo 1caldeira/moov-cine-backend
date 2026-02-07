@@ -1,8 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.JsonPatch;
+﻿using FilmesAPI.Data.DTO;
 using FilmesAPI.Services;
-using FilmesAPI.Data.DTO;
 using FluentResults;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FilmesAPI.Controllers;
 
@@ -18,6 +19,7 @@ public class EnderecoController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "admin")]
     public IActionResult AdicionaEndereco([FromBody] CreateEnderecoDTO EnderecoDTO) {
 
         var readDTO = _enderecoService.AdicionaEndereco(EnderecoDTO);
@@ -38,6 +40,7 @@ public class EnderecoController : ControllerBase
     }
 
     [HttpPatch("{id}")]
+    [Authorize(Roles = "admin")]
     public IActionResult AtualizaEnderecoParcial(int id, JsonPatchDocument<UpdateEnderecoDTO> patch) {
         var enderecoParaAtualizar = _enderecoService.RecuperaEnderecoParaAtualizar(id);
         if (enderecoParaAtualizar == null) return NotFound();
@@ -58,6 +61,7 @@ public class EnderecoController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin")]
     public IActionResult AtualizaEndereco(int id, UpdateEnderecoDTO EnderecoDTO) {
         Result result = _enderecoService.AtualizaEndereco(id, EnderecoDTO);
         if (result.IsFailed) return NotFound();
@@ -65,6 +69,7 @@ public class EnderecoController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "admin")]
     public IActionResult DeletaEndereco(int id) {
         Result result = _enderecoService.DeletaEndereco(id);
         if (result.IsFailed) {

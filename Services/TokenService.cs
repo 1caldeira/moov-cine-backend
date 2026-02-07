@@ -14,12 +14,14 @@ public class TokenService
     {
         _configuration = configuration;
     }
-    public string GenerateToken(Usuario usuario)
+    public string GenerateToken(Usuario usuario, string role)
     {
         Claim[] claims = {
             new Claim("username", usuario.UserName!),
             new Claim("id", usuario.Id),
-            new Claim(ClaimTypes.DateOfBirth, usuario.DataNascimento.ToString())
+            new Claim(ClaimTypes.DateOfBirth, usuario.DataNascimento.ToString()),
+            new Claim("loginTimestamp", DateTime.UtcNow.ToString()),
+            new Claim(ClaimTypes.Role,role)
         };
 
         var keyFromConfig = _configuration["JwtSettings:SecretKey"];

@@ -46,7 +46,7 @@ public class FilmeService
             query = query.Include(f => f.Sessoes.Where(s => s.Horario.AddMinutes(Sessao.ToleranciaAtrasoMinutos) >= DateTime.Now));
         }
 
-        return _mapper.Map<List<ReadFilmeDTO>>(query.OrderByDescending(f => f.Titulo).Skip(dto.Skip).Take(dto.Take).ToList());
+        return _mapper.Map<List<ReadFilmeDTO>>(query.OrderByDescending(f => f.Sessoes.Count).ThenBy(f => f.Titulo).Skip(dto.Skip).Take(dto.Take).ToList());
     }
 
     public ReadFilmeDTO ObterFilmesPorId(int id)
@@ -88,7 +88,7 @@ public class FilmeService
         Filme filme = _context.Filmes.FirstOrDefault(c => c.Id == id)!;
         if (filme == null) return Result.Fail(ErroNaoEncontrado);
 
-        var sessaoVinculada = _context.Sessoes.Any(s => s.FilmeId == id && s.Horario > DateTime.Now);
+        var sessaoVinculada = _context.Sessoes.Any(s => s.FilmeId == id && s.Horario > DateTime.Now.AddMinutes(Sessao.ToleranciaAtrasoMinutos));
 
         if (sessaoVinculada)
         {

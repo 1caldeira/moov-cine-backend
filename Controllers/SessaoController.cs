@@ -1,6 +1,7 @@
 ﻿using FilmesAPI.Data.DTO;
 using FilmesAPI.Services;
 using FluentResults;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,7 @@ public class SessaoController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "admin")]
     public IActionResult AdicionaSessao([FromBody] CreateSessaoDTO createDTO) {
         var result = _sessaoService.AdicionaSessao(createDTO);
         if (result.IsFailed) {
@@ -47,6 +49,7 @@ public class SessaoController : ControllerBase
     
 
     [HttpPatch("{id}")]
+    [Authorize(Roles = "admin")]
     public IActionResult AtualizaSessaoParcial(int id, JsonPatchDocument<UpdateSessaoDTO> patch) {
         var sessaoParaAtualizar = _sessaoService.RecuperaSessoesParaAtualizar(id);
         if (sessaoParaAtualizar == null) return NotFound();
@@ -61,6 +64,7 @@ public class SessaoController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin")]
     public IActionResult AtualizaSessao(int id, UpdateSessaoDTO sessaoDTO) {
         Result result = _sessaoService.AtualizaSessoes(id, sessaoDTO);
         if (result.IsFailed) {
@@ -75,6 +79,7 @@ public class SessaoController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "admin")]
     public IActionResult DeletaSessao(int id) {
         Result result = _sessaoService.DeletaSessoes(id);
         if (result.IsFailed) {

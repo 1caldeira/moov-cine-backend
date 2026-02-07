@@ -11,13 +11,16 @@ public class UsuarioService
     private UserManager<Usuario> _userManager;
     private SignInManager<Usuario> _signInManager;
     private TokenService _tokenService;
+    private RoleManager<IdentityRole> _roleManager;
 
-    public UsuarioService(IMapper mapper, UserManager<Usuario> userManager, SignInManager<Usuario> signInManager, TokenService tokenService)
+    public UsuarioService(IMapper mapper, UserManager<Usuario> userManager, 
+        SignInManager<Usuario> signInManager, TokenService tokenService, RoleManager<IdentityRole> roleManager)
     {
         _mapper = mapper;
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
+        _roleManager = roleManager;
     }
 
     public async Task<string> Login(LoginUsuarioDTO dto)
@@ -29,7 +32,10 @@ public class UsuarioService
         var usuario = _signInManager.UserManager.Users.FirstOrDefault(
             user => user.NormalizedUserName == dto.Username.ToUpper());
 
-        var token = _tokenService.GenerateToken(usuario);
+        var roles = await _signInManager.UserManager.GetRolesAsync(usuario);
+        var roleDoUsuario = roles.FirstOrDefault() ?? "usuario";
+
+        var token = _tokenService.GenerateToken(usuario, roleDoUsuario);
         return token;
 
     }
@@ -40,8 +46,11 @@ public class UsuarioService
         IdentityResult resultado = await _userManager.CreateAsync(usuario, dto.Password);
 
         if (!resultado.Succeeded) {
-            throw new ApplicationException("Falha ao cadastrar usuário");
+            var erroGeral = string.Join(" | ", resultado.Errors.Select(e => e.Description));
+            throw new ApplicationException("Falha ao cadastrar usuário: "+erroGeral);
         }
+
+
     }
 
 

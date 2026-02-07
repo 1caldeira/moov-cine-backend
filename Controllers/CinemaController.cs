@@ -1,9 +1,9 @@
 ﻿using FilmesAPI.Data.DTO;
 using FilmesAPI.Services;
 using FluentResults;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using FluentResults;
 
 
 namespace FilmesAPI.Controllers;
@@ -20,6 +20,7 @@ public class CinemaController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "admin")]
     public IActionResult AdicionaCinema([FromBody] CreateCinemaDTO cinemaDTO) {
         ReadCinemaDTO readDTO = _cinemaService.AdicionaCinema(cinemaDTO);
         return CreatedAtAction(nameof(ObterCinemaPorId), new { Id = readDTO.Id }, readDTO);
@@ -41,6 +42,7 @@ public class CinemaController : ControllerBase
     
 
     [HttpPatch("{id}")]
+    [Authorize(Roles = "admin")]
     public IActionResult AtualizaCinemaParcial(int id, JsonPatchDocument<UpdateCinemaDTO> patch) {
         var cinemaParaAtualizar = _cinemaService.RecuperaCinemaParaAtualizar(id);
         if(cinemaParaAtualizar  == null) return NotFound();
@@ -61,6 +63,7 @@ public class CinemaController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin")]
     public IActionResult AtualizaCinema(int id, UpdateCinemaDTO cinemaDTO) {
         Result result = _cinemaService.AtualizaCinema(id, cinemaDTO);
         if (result.IsFailed) return NotFound();
@@ -68,6 +71,7 @@ public class CinemaController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "admin")]
     public IActionResult DeletaCinema(int id) {
         Result result = _cinemaService.DeletaCinema(id);
         if (result.IsFailed) { 

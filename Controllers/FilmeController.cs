@@ -1,8 +1,9 @@
 ﻿using FilmesAPI.Data.DTO;
+using FilmesAPI.Services;
 using FluentResults;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using FilmesAPI.Services;
 
 
 namespace FilmesAPI.Controllers;
@@ -26,6 +27,7 @@ public class FilmeController : ControllerBase
     /// <returns>IActionResult</returns>
     /// <response code="201">Caso inserção seja feita com sucesso</response>
     [HttpPost]
+    [Authorize(Roles = "admin")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     public IActionResult AdicionaFilme([FromBody] CreateFilmeDTO filmeDTO) {
         ReadFilmeDTO filme = _filmeService.AdicionaFilme(filmeDTO);
@@ -74,6 +76,7 @@ public class FilmeController : ControllerBase
     /// <response code="204">Caso a atualização seja feita com sucesso</response>
     /// <response code="404">Caso o ID do filme não seja encontrado</response>
     [HttpPut("{id}")]
+    [Authorize(Roles = "admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult AtualizaFilme(int id, [FromBody] UpdateFilmeDTO filmeDTO)
@@ -104,6 +107,7 @@ public class FilmeController : ControllerBase
     /// <response code="400">Caso o corpo da requisição seja inválido ou viole regras de negócio</response>
     /// <response code="404">Caso o ID do filme não seja encontrado</response>
     [HttpPatch("{id}")]
+    [Authorize(Roles = "admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -140,6 +144,7 @@ public class FilmeController : ControllerBase
     /// <response code="400">Caso existam regras de negócio impedindo a exclusão (ex: sessões futuras)</response>
     /// <response code="404">Caso o ID do filme não seja encontrado</response>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult DeletaFilme(int id)
