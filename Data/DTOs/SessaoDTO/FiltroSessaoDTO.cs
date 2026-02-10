@@ -5,14 +5,8 @@ public class FiltroSessaoDTO
     public int Skip { get; set; } = 0;
     public int Take { get; set; } = 20;
 
-
     public int? CinemaId { get; set; }
     public int? FilmeId { get; set; }
-
-
-    public DateTime? DataDe { get; set; }
-    public DateTime? DataAte { get; set; }
-
 
     public string? NomeFilme { get; set; }
 

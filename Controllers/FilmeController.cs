@@ -64,7 +64,8 @@ public class FilmeController : ControllerBase
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult ObterFilmesPorId(int id) {
-        ReadFilmeDTO dto = _filmeService.ObterFilmesPorId(id);
+        bool isAdmin = User.IsInRole("admin");
+        ReadFilmeDTO dto = _filmeService.ObterFilmesPorId(id, isAdmin);
         if (dto == null) return NotFound();
         return Ok(dto);
     }
@@ -149,9 +150,9 @@ public class FilmeController : ControllerBase
     [Authorize(Roles = "admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult DeletaFilme(int id)
+    public IActionResult DeletaFilme(int id, [FromQuery] bool force = false)
     {
-        Result result = _filmeService.DeletaFilme(id);
+        Result result = _filmeService.DeletaFilme(id, force);
         if (result.IsFailed) {
             if (result.Errors.Any(r => r.Message.Equals(FilmeService.ErroNaoEncontrado))) {  
                 return NotFound(); 

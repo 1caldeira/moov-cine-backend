@@ -6,4 +6,5 @@ public class UpdateCinemaDTO
 {
     [Required(ErrorMessage = "O campo nome é obrigatorio.")]
     public string Nome { get; set; }
+    public UpdateEnderecoDTO Endereco { get; set; }
 }

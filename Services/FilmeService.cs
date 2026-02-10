@@ -49,12 +49,12 @@ public class FilmeService
 
         if (dto.ApenasDisponiveis)
         {
-            // --- MODO CLIENTE (Padrão) ---
+            query = query.Where(f => f.Sessoes.Any(s => s.Horario.AddMinutes(Sessao.ToleranciaAtrasoMinutos) >= DateTime.Now));
 
+            
             query = query.Include(f => f.Sessoes.Where(s => s.Horario.AddMinutes(Sessao.ToleranciaAtrasoMinutos) >= DateTime.Now))
                          .ThenInclude(s => s.Cinema)
                          .ThenInclude(c => c.Endereco);
-
 
             queryOrdenada = query.OrderByDescending(f => f.Sessoes.Count).ThenBy(f => f.Titulo);
         }
@@ -82,10 +82,22 @@ public class FilmeService
         return _mapper.Map<List<ReadFilmeDTO>>(listaFilmes);
     }
 
-    public ReadFilmeDTO ObterFilmesPorId(int id)
+    public ReadFilmeDTO? ObterFilmesPorId(int id, bool isAdmin)
     {
-        var filme = _context.Filmes.FirstOrDefault(f => f.Id == id);
+        var query = _context.Filmes.AsQueryable();
+
+        if (isAdmin) {
+            query = query.IgnoreQueryFilters();
+        }
+
+        var filme = query
+        .Include(f => f.Sessoes)
+        .ThenInclude(s => s.Cinema)
+        .ThenInclude(c => c.Endereco)
+        .FirstOrDefault(f => f.Id == id);
+
         if (filme == null) return null;
+
         return _mapper.Map<ReadFilmeDTO>(filme);
     }
 
@@ -116,18 +128,36 @@ public class FilmeService
         return _mapper.Map<UpdateFilmeDTO>(filme);
     }
 
-    public Result DeletaFilme(int id)
+    public Result DeletaFilme(int id, bool force = false)
     {
-        Filme filme = _context.Filmes.FirstOrDefault(c => c.Id == id)!;
+        var filme = _context.Filmes
+        .IgnoreQueryFilters()
+        .Include(f => f.Sessoes)
+        .FirstOrDefault(c => c.Id == id);
+
         if (filme == null) return Result.Fail(ErroNaoEncontrado);
 
-        var sessaoVinculada = _context.Sessoes.Any(s => s.FilmeId == id && s.Horario > DateTime.Now.AddMinutes(Sessao.ToleranciaAtrasoMinutos));
+        var sessaoVinculada = filme.Sessoes.Any(s => s.Horario > DateTime.Now.AddMinutes(Sessao.ToleranciaAtrasoMinutos));
 
         if (sessaoVinculada)
         {
             return Result.Fail(ErroSessaoVinculada);
         }
-        filme.DataExclusao = DateTime.Now;
+       
+        bool possuiHistorico = filme.Sessoes.Any();
+
+        if (possuiHistorico)
+        {
+            filme.DataExclusao = DateTime.Now;
+        }
+        else
+        {
+            if (!force) {
+                return Result.Fail("CONFIRM_HARD_DELETE");
+            }
+            _context.Filmes.Remove(filme);
+        }
+
         _context.SaveChanges();
         return Result.Ok();
     }

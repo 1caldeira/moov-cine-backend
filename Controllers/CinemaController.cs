@@ -70,7 +70,14 @@ public class CinemaController : ControllerBase
     [Authorize(Roles = "admin")]
     public IActionResult AtualizaCinema(int id, UpdateCinemaDTO cinemaDTO) {
         Result result = _cinemaService.AtualizaCinema(id, cinemaDTO);
-        if (result.IsFailed) return NotFound();
+        if (result.IsFailed)
+        {
+            if (result.Errors.Any(r => r.Message.Equals(CinemaService.ErroNaoEncontrado)))
+            {
+                return NotFound();
+            }
+            return BadRequest(result.Errors);
+        }
         return NoContent();
     }
 

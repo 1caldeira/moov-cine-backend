@@ -22,6 +22,7 @@ public class SessaoService
     public const string ErroNaoEncontrado = "Sessao não encontrada!";
     public const string ErroSessaoJaPassou = "Só é possivel cancelar uma sessão que ainda não começou";
     public const string ErroHorarioIndisponivel = "O horário escolhido para a nova sessão está indisponível.";
+    public const string ErroSessaoNoPassado = "Não é possível criar uma sessão no passado";
 
     public Result<ReadSessaoDTO> AdicionaSessao(CreateSessaoDTO sessaoDTO)
     {
@@ -36,6 +37,10 @@ public class SessaoService
         if (TemConflitoDeHorario(sessaoDTO.CinemaId,sessaoDTO.Sala,sessaoDTO.Horario, filme.Duracao, null))
         {
             return Result.Fail(ErroHorarioIndisponivel);
+        }
+        if (sessaoDTO.Horario < DateTime.Now) 
+        {
+            return Result.Fail(ErroSessaoNoPassado);
         }
         Sessao sessao = _mapper.Map<Sessao>(sessaoDTO);
         _context.Sessoes.Add(sessao);
@@ -63,17 +68,7 @@ public class SessaoService
             query = query.Where(s => s.Filme.Titulo.ToLower().Contains(termoBusca));
         }
 
-        if (filtro.DataDe.HasValue)
-        {
-            query = query.Where(s => s.Horario >= filtro.DataDe.Value);
-        }
-
-        if (filtro.DataAte.HasValue)
-        {
-            query = query.Where(s => s.Horario <= filtro.DataAte.Value);
-        }
-
-        if (filtro.SomenteDisponiveis && !filtro.DataDe.HasValue)
+        if (filtro.SomenteDisponiveis)
         {
             query = query.Where(s => s.Horario >= DateTime.Now);
         }
