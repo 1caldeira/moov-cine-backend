@@ -136,4 +136,15 @@ public class SessaoController : ControllerBase
         }
         return NoContent();
     }
+
+    [HttpPost("seedsessoes")]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> SeedSessoes() {
+        var total = _sessaoService.GerarSessoesAutomaticamente();
+        if (total.Result == 0) {
+            return BadRequest("Nenhuma sessão foi criada, verifique se há cinemas e filmes cadastrados!");
+        }
+        return Ok(new { message = $"Sucesso! {total.Result} sessões geradas para os próximos dias." });
+    }
+
 }

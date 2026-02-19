@@ -4,6 +4,7 @@ using FilmesAPI.Data.DTO;
 using FilmesAPI.Models;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
+using static System.Net.WebRequestMethods;
 
 
 
@@ -30,7 +31,7 @@ public class SessaoService
     private string GetUserId()
     {
         var user = _httpContextAccessor.HttpContext!.User;
-        var id = user.FindFirst("id")!.Value;                     
+        var id = user.FindFirst("id")!.Value;
         return id;
     }
 
@@ -60,7 +61,7 @@ public class SessaoService
 
             return Result.Fail($"Sala ocupada por: {sessaoConflitante.Filme.Titulo} ({dia} - {inicio} às {fim})");
         }
-        if (sessaoDTO.Horario < DateTime.Now) 
+        if (sessaoDTO.Horario < DateTime.Now)
         {
             return Result.Fail(ErroSessaoNoPassado);
         }
@@ -157,19 +158,13 @@ public class SessaoService
     {
         var horarioFim = horarioInicio.AddMinutes(duracaoFilme);
 
-        var query = _context.Sessoes.AsQueryable();
-
-        query = query.Where(s => s.CinemaId == cinemaId
-                              && s.Sala == sala
-                              && horarioInicio < s.Horario.AddMinutes(s.Filme.Duracao)
-                              && horarioFim > s.Horario);
-
-        if (sessaoIdIgnorar.HasValue)
-        {
-            query = query.Where(s => s.Id != sessaoIdIgnorar.Value);
-        }
-
-        return query.Any();
+        return _context.Sessoes.Local.Any(s =>
+            s.CinemaId == cinemaId &&
+            s.Sala == sala &&
+            s.DataExclusao == null &&
+            (sessaoIdIgnorar == null || s.Id != sessaoIdIgnorar) &&
+            horarioInicio < s.Horario.AddMinutes(s.Filme.Duracao) &&
+            horarioFim > s.Horario);
     }
 
     private Sessao? ObterSessaoConflitante(int cinemaId, int sala, DateTime horarioInicio, int duracaoFilme, int? sessaoIdIgnorar)
@@ -185,10 +180,80 @@ public class SessaoService
             && s.Sala == sala
             && s.DataExclusao == null
             && (sessaoIdIgnorar == null || s.Id != sessaoIdIgnorar)
-            && horarioInicio < s.Horario.AddMinutes(s.Filme.Duracao) 
-            && horarioFim > s.Horario 
+            && horarioInicio < s.Horario.AddMinutes(s.Filme.Duracao)
+            && horarioFim > s.Horario
         );
 
         return conflito;
     }
+
+    public async Task<int> GerarSessoesAutomaticamente()
+    {
+        var hoje = DateTime.Now;
+        var random = new Random();
+
+        var gradeMestre = new List<TimeSpan> {
+        new TimeSpan(14,0,0), new TimeSpan(15,30,0),
+        new TimeSpan(17,30,0), new TimeSpan(21,0,0), new TimeSpan(12,0,0), new TimeSpan(20,0,0)
+    };
+
+        var dataCorte = hoje.AddMonths(-2);
+        var filmesDisponiveis = await _context.Filmes.Where(f => f.DataLancamento >= dataCorte).ToListAsync();
+        var cinemas = await _context.Cinemas.ToListAsync();
+        int contador = 0;
+
+        await _context.Sessoes.ToListAsync();
+
+        foreach (var cinema in cinemas)
+        {
+            for (int dia = 0; dia <= 7; dia++)
+            {
+                var dataReferencia = hoje.Date.AddDays(dia);
+
+                foreach (var hora in gradeMestre)
+                {
+                    var horarioSessao = dataReferencia.Add(hora);
+                    if (horarioSessao < hoje) continue;
+
+
+                    var filmesEmbaralhados = filmesDisponiveis.OrderBy(x => random.Next()).ToList();
+
+                    for (int sala = 1; sala <= 10; sala++)
+                    {
+                        // chance de 20% da sala estar vazia no horario
+                        if (random.Next(100) < 20) continue;
+
+                        foreach (var filme in filmesEmbaralhados)
+                        {
+                            if (filme.DataLancamento.Date > dataReferencia) continue;
+
+                            
+                            if (!TemConflitoDeHorario(cinema.Id, sala, horarioSessao, filme.Duracao, null) &&
+                                !FilmeJaEstaNesseHorario(cinema.Id, filme.Id, horarioSessao))
+                            {
+                                _context.Sessoes.Add(new Sessao
+                                {
+                                    FilmeId = filme.Id,
+                                    CinemaId = cinema.Id,
+                                    Horario = horarioSessao,
+                                    Sala = sala
+                                });
+                                contador++;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        await _context.SaveChangesAsync();
+        return contador;
+    }
+
+    private bool FilmeJaEstaNesseHorario(int cinemaId, int filmeId, DateTime horario)
+    {
+        return _context.Sessoes.Local.Any(s =>
+            s.CinemaId == cinemaId && s.FilmeId == filmeId && s.Horario == horario);
+    }
+    
 }
