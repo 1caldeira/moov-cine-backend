@@ -74,7 +74,7 @@ O projeto utiliza **DTOs (Data Transfer Objects)** para desacoplar a camada de d
 O projeto vai além de um CRUD tradicional ao apresentar o `GerarSessoesAutomaticamente`, um algoritmo proprietário de curadoria que simula o comportamento de grandes redes cinematográficas.
 
 * **Curadoria Baseada em Popularidade:** Utiliza os dados do TMDB para dar prioridade de exibição aos grandes sucessos de bilheteria.
-* **Lógica Matemática Avançada:** Para evitar que grandes lançamentos monopolizem todas as salas, o algoritmo aplica uma escala logarítmica:
+* **Lógica Matemática Avançada:** Para evitar que grandes lançamentos monopolizem todas as salas, o algoritmo aplica uma escala logarítmica. Multiplicamos por 20 para aumentar a diferença após o achatamento logarítmico (já que log10(10) é 1, log 10(1000) é 3, log 10(6500) é apenas 3.8)
 
 $$\text{bônus} = \log_{10}(\max(1, \text{popularidade})) \times 20$$
 
