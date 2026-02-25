@@ -22,7 +22,7 @@ public class Filme
     public DateTime? DataExclusao { get; set; }
     public string? UsuarioExclusaoId { get; set; }
 
-
+    public double Popularidade { get; set; }
 }
 
 

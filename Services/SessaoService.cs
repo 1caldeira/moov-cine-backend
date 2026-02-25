@@ -193,8 +193,8 @@ public class SessaoService
         var random = new Random();
 
         var gradeMestre = new List<TimeSpan> {
-        new TimeSpan(14,0,0), new TimeSpan(15,30,0),
-        new TimeSpan(17,30,0), new TimeSpan(21,0,0), new TimeSpan(12,0,0), new TimeSpan(20,0,0)
+        new TimeSpan(12,0,0), new TimeSpan(14,0,0), new TimeSpan(15,30,0),
+        new TimeSpan(17,30,0), new TimeSpan(20,0,0), new TimeSpan(21,0,0)
     };
 
         var dataCorte = hoje.AddMonths(-2);
@@ -206,41 +206,62 @@ public class SessaoService
 
         foreach (var cinema in cinemas)
         {
-            for (int dia = 0; dia <= 7; dia++)
-            {
-                var dataReferencia = hoje.Date.AddDays(dia);
+            // inversão de grandeza (mais salas = menor exclusão)
+            int baseExclusaoCinema = Math.Max(10, 95 - (cinema.NumeroSalas * 10));
 
+            var filmesNesteCinema = filmesDisponiveis.Where(f =>
+            {
+                double bonusPopularidade = Math.Log10(Math.Max(1, f.Popularidade)) * 20;
+
+                int chanceExclusaoFinal = (int)Math.Clamp(baseExclusaoCinema - bonusPopularidade, 5, 95);
+
+                return random.Next(100) >= chanceExclusaoFinal;
+            }).ToList();
+
+            if (!filmesNesteCinema.Any() && filmesDisponiveis.Any())
+                filmesNesteCinema = filmesDisponiveis.OrderByDescending(f => f.Popularidade).Take(2).ToList();
+
+            for (int sala = 1; sala <= cinema.NumeroSalas; sala++)
+            {
                 foreach (var hora in gradeMestre)
                 {
-                    var horarioSessao = dataReferencia.Add(hora);
-                    if (horarioSessao < hoje) continue;
+                    if (random.Next(100) < 20) continue;
 
+                    var filmesPorSucesso = filmesNesteCinema
+                    .OrderByDescending(f => f.Popularidade)
+                    .ToList();
+                    Filme? filmeEscolhido = null;
 
-                    var filmesEmbaralhados = filmesDisponiveis.OrderBy(x => random.Next()).ToList();
-
-                    for (int sala = 1; sala <= 10; sala++)
+                    foreach (var f in filmesPorSucesso)
                     {
-                        // chance de 20% da sala estar vazia no horario
-                        if (random.Next(100) < 20) continue;
-
-                        foreach (var filme in filmesEmbaralhados)
+                        DateTime dataTeste = hoje.Date.AddDays(1).Add(hora);
+                        if (!FilmeJaEstaNesseHorario(cinema.Id, f.Id, dataTeste))
                         {
-                            if (filme.DataLancamento.Date > dataReferencia) continue;
+                            filmeEscolhido = f;
+                            break;
+                        }
+                    }
 
-                            
-                            if (!TemConflitoDeHorario(cinema.Id, sala, horarioSessao, filme.Duracao, null) &&
-                                !FilmeJaEstaNesseHorario(cinema.Id, filme.Id, horarioSessao))
+                    if (filmeEscolhido == null) continue;
+
+                    for (int dia = 0; dia <= 7; dia++)
+                    {
+                        var dataReferencia = hoje.Date.AddDays(dia);
+                        var horarioSessao = dataReferencia.Add(hora);
+
+                        if (horarioSessao < hoje) continue;
+                        if (filmeEscolhido.DataLancamento.Date > dataReferencia) continue;
+
+                        if (!TemConflitoDeHorario(cinema.Id, sala, horarioSessao, filmeEscolhido.Duracao, null))
+                        {
+                            _context.Sessoes.Add(new Sessao
                             {
-                                _context.Sessoes.Add(new Sessao
-                                {
-                                    FilmeId = filme.Id,
-                                    CinemaId = cinema.Id,
-                                    Horario = horarioSessao,
-                                    Sala = sala
-                                });
-                                contador++;
-                                break;
-                            }
+                                FilmeId = filmeEscolhido.Id,
+                                CinemaId = cinema.Id,
+                                Horario = horarioSessao,
+                                Sala = sala
+                            });
+                            contador++;
                         }
                     }
                 }

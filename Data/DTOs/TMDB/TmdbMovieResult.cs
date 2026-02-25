@@ -30,4 +30,6 @@ public class TmdbMovieResult
 
     [JsonPropertyName("genre_ids")]
     public List<int> GenreIds { get; set; } = new();
+    [JsonPropertyName("popularity")]
+    public double Popularity { get; set; }
 }

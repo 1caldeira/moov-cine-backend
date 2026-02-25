@@ -14,4 +14,5 @@ public class Cinema
     public virtual ICollection<Sessao> Sessoes { get; set; }
     public DateTime? DataExclusao { get; set; }
     public string? UsuarioExclusaoId { get; set; }
+    public int NumeroSalas { get; set; }
 }

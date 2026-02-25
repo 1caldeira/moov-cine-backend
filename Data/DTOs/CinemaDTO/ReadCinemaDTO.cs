@@ -7,4 +7,5 @@ public class ReadCinemaDTO
     public string Nome { get; set; }
     public ReadEnderecoDTO Endereco {  get; set; }
     public ICollection<ReadSessaoDTO> Sessoes { get; set; }
+    public int NumeroSalas { get; set; }
 }

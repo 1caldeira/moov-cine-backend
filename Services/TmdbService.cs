@@ -119,6 +119,7 @@ public class TmdbService
                 {
                     Titulo = item.Title,
                     Sinopse = !string.IsNullOrEmpty(detalhe.Overview) ? detalhe.Overview : "Sinopse indisponível",
+                    Popularidade = item.Popularity,
                     Duracao = detalhe.Runtime > 0 ? detalhe.Runtime : 120,
                     Genero = generoFinal,
                     PosterUrl = !string.IsNullOrEmpty(item.PosterPath)

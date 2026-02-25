@@ -62,6 +62,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
     options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+    options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
     //options.SerializerSettings.DateFormatString = "dd-MM-yyyy HH:mm";
 });
 
@@ -122,7 +123,12 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.UseCors("wasm");
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -176,11 +182,6 @@ app.UseSwaggerUI();
 
 // app.UseHttpsRedirection(); <--- evitando erro de SSL no container
 
-app.UseCors("wasm");
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapControllers();
 
 app.Run();
