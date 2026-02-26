@@ -30,6 +30,7 @@ services:
       mysql:
         condition: service_healthy
     restart: unless-stopped
+
   caddy:
     image: caddy:latest
     restart: unless-stopped
