@@ -23,7 +23,7 @@ services:
       JwtSettings__SecretKey: "${JWT_SECRET}"
       TMDB__ApiKey: "${TMDB_API_KEY}"
       AdminPassword: "${ADMIN_PASSWORD}"
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Production
     ports:
       - "8080:8080"
     depends_on:
