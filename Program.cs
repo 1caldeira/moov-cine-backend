@@ -26,11 +26,6 @@ builder.Services.AddDbContext<AppDbContext>(opts =>
     ServerVersion.AutoDetect(connectionString)));
 
 
-builder.Services.AddIdentity<Usuario, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
-
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
