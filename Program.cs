@@ -25,6 +25,10 @@ builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseLazyLoadingProxies().UseMySql(connectionString,
     ServerVersion.AutoDetect(connectionString)));
 
+builder.Services.AddIdentity<Usuario, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders()
+    .AddErrorDescriber<PortuguesIdentityErrorDescriber>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -44,7 +48,19 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    };
+});
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<CinemaService>();
 builder.Services.AddScoped<EnderecoService>();
@@ -118,25 +134,6 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
-});
-
-builder.Services.AddIdentity<Usuario, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders()
-    .AddErrorDescriber<PortuguesIdentityErrorDescriber>();
-
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Events.OnRedirectToLogin = context =>
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        return Task.CompletedTask;
-    };
-    options.Events.OnRedirectToAccessDenied = context =>
-    {
-        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        return Task.CompletedTask;
-    };
 });
 
 var app = builder.Build();
