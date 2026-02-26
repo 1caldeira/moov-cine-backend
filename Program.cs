@@ -116,8 +116,7 @@ builder.Services.AddCors(options =>
                 "https://moovcine.vercel.app"
                )
               .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+              .AllowAnyHeader();
     });
 });
 
@@ -128,6 +127,7 @@ builder.Services.AddIdentity<Usuario, IdentityRole>()
 
 var app = builder.Build();
 app.UseMiddleware<ErrorHandlingMiddleware>();
+app.UseRouting();
 app.UseCors("wasm");
 
 app.UseAuthentication();
