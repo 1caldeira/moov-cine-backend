@@ -1,3 +1,4 @@
+using FilmesAPI.Configuration;
 using FilmesAPI.Data;
 using FilmesAPI.Models;
 using FilmesAPI.Services;
@@ -124,6 +125,11 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+
+builder.Services.AddIdentity<Usuario, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders()
+    .AddErrorDescriber<PortuguesIdentityErrorDescriber>();
 
 var app = builder.Build();
 app.UseMiddleware<ErrorHandlingMiddleware>();
