@@ -46,8 +46,10 @@ public class UsuarioService
         IdentityResult resultado = await _userManager.CreateAsync(usuario, dto.Password);
 
         if (!resultado.Succeeded) {
-            var erroGeral = string.Join(" | ", resultado.Errors.Select(e => e.Description));
-            throw new ApplicationException("Falha ao cadastrar usuário: "+erroGeral);
+            var mensagensDeErro = resultado.Errors.Select(e => e.Description);
+            var erroFormatado = string.Join(" | ", mensagensDeErro);
+
+            throw new ApplicationException(erroFormatado);
         }
 
 
