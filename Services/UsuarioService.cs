@@ -27,7 +27,7 @@ public class UsuarioService
     {
         var resultado = await _signInManager.PasswordSignInAsync(dto.Username,dto.Password,false,false);
         if (!resultado.Succeeded) {
-            throw new ApplicationException("Usuario nao autenticado!");
+            throw new ApplicationException("Usuario ou senha incorretos.");
         }
         var usuario = _signInManager.UserManager.Users.FirstOrDefault(
             user => user.NormalizedUserName == dto.Username.ToUpper());
