@@ -12,6 +12,6 @@ public class CreateUsuarioDTO
     [DataType(DataType.Password)]
     public string Password { get; set; }
     [Required]
-    [Compare("Password")]
+    [Compare("Password", ErrorMessage = "A senha e a confirmação da senha são diferentes.")]
     public string RePassword { get; set; }
 }
