@@ -45,43 +45,48 @@ public class FilmeService
         var dataCorteCliente = DateTime.Now.AddMonths(-2);
         var dataCorteAdmin = DateTime.Now.AddMonths(-4);
 
-        if (dto.CinemaId != null)
-        {
-            query = query.Where(f => f.Sessoes.Any(s => s.CinemaId == dto.CinemaId));
-        }
-
         if (!string.IsNullOrEmpty(dto.NomeFilme))
         {
             query = query.Where(f => f.Titulo.Contains(dto.NomeFilme));
         }
 
+        if (dto.CinemaId != null)
+        {
+            query = query.Where(f => f.Sessoes.Any(s => s.CinemaId == dto.CinemaId));
+        }
 
-        IOrderedQueryable<Filme> queryOrdenada;
 
         if (dto.ApenasDisponiveis)
         {
             query = query.Where(f => f.Sessoes.Any(s => s.Horario.AddMinutes(Sessao.ToleranciaAtrasoMinutos) >= DateTime.Now)
-            && f.DataLancamento >= dataCorteCliente);
+                                     && f.DataLancamento >= dataCorteCliente);
 
-            
-            query = query.Include(f => f.Sessoes.Where(s => s.Horario.AddMinutes(Sessao.ToleranciaAtrasoMinutos) >= DateTime.Now))
+            query = query.Include(f => f.Sessoes.Where(s =>
+                            s.Horario.AddMinutes(Sessao.ToleranciaAtrasoMinutos) >= DateTime.Now &&
+                            (dto.CinemaId == null || s.CinemaId == dto.CinemaId)))
                          .ThenInclude(s => s.Cinema)
                          .ThenInclude(c => c.Endereco);
+        }
+        else
+        {
+            // --- MODO ADMIN ---
+            query = query.IgnoreQueryFilters();
+            query = query.Where(f => f.DataLancamento >= dataCorteAdmin);
 
+            query = query.Include(f => f.Sessoes.Where(s =>
+                            dto.CinemaId == null || s.CinemaId == dto.CinemaId))
+                         .ThenInclude(s => s.Cinema)
+                         .ThenInclude(c => c.Endereco);
+        }
+
+
+        IOrderedQueryable<Filme> queryOrdenada;
+        if (dto.ApenasDisponiveis)
+        {
             queryOrdenada = query.OrderByDescending(f => f.Sessoes.Count).ThenByDescending(f => f.DataLancamento);
         }
         else
         {
-            // --- MODO ADMIN---
-
-            query = query.IgnoreQueryFilters();
-            query = query.Where(f => f.DataLancamento >= dataCorteAdmin);
-
-            query = query.Include(f => f.Sessoes)
-                         .ThenInclude(s => s.Cinema)
-                         .ThenInclude(c => c.Endereco);
-
-            
             queryOrdenada = query.OrderByDescending(f => f.DataLancamento);
         }
 

@@ -129,7 +129,11 @@ builder.Services.AddCors(options =>
                 "http://localhost:5501",
                 "http://127.0.0.1:5500",
                 "http://moovcine.vercel.app",
-                "https://moovcine.vercel.app"
+                "https://moovcine.vercel.app",
+                "http://localhost:8081",
+                "http://127.0.0.1:8081",
+                "https://localhost:8081",
+                "https://127.0.0.1:8081"
                )
               .AllowAnyMethod()
               .AllowAnyHeader();
