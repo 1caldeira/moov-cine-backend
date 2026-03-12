@@ -13,7 +13,7 @@ public class UsuarioService
     private TokenService _tokenService;
     private RoleManager<IdentityRole> _roleManager;
 
-    public UsuarioService(IMapper mapper, UserManager<Usuario> userManager, 
+    public UsuarioService(IMapper mapper, UserManager<Usuario> userManager,
         SignInManager<Usuario> signInManager, TokenService tokenService, RoleManager<IdentityRole> roleManager)
     {
         _mapper = mapper;
@@ -25,8 +25,9 @@ public class UsuarioService
 
     public async Task<string> Login(LoginUsuarioDTO dto)
     {
-        var resultado = await _signInManager.PasswordSignInAsync(dto.Username,dto.Password,false,false);
-        if (!resultado.Succeeded) {
+        var resultado = await _signInManager.PasswordSignInAsync(dto.Username, dto.Password, false, false);
+        if (!resultado.Succeeded)
+        {
             throw new ApplicationException("Usuario ou senha incorretos.");
         }
         var usuario = _signInManager.UserManager.Users.FirstOrDefault(
@@ -40,12 +41,16 @@ public class UsuarioService
 
     }
 
-    public async Task Cadastra(CreateUsuarioDTO dto) {
+    public async Task<(string usuarioId, string token)> Cadastra(CreateUsuarioDTO dto)
+    {
+        Usuario? usuarioExistente = await _userManager.FindByEmailAsync(dto.Email);
+        if (usuarioExistente != null) throw new ApplicationException("Já existe uma conta cadastrada com este e-mail");
         Usuario usuario = _mapper.Map<Usuario>(dto);
 
         IdentityResult resultado = await _userManager.CreateAsync(usuario, dto.Password);
 
-        if (!resultado.Succeeded) {
+        if (!resultado.Succeeded)
+        {
             var mensagensDeErro = resultado.Errors.Select(e => e.Description);
             var erroFormatado = string.Join(" | ", mensagensDeErro);
 
@@ -53,8 +58,21 @@ public class UsuarioService
         }
 
 
+        // 4. A MÁGICA ACONTECE AQUI: O usuário já existe no banco. Vamos gerar o token!
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(usuario);
+
+        // 5. Devolvemos o ID e o Token juntos para o Controller
+        return (usuario.Id.ToString(), token);
     }
 
+    public async Task<bool> ConfirmaEmail(string userId, string token)
+    {
+        var usuario = await _userManager.FindByIdAsync(userId);
+        if (usuario == null) return false;
 
+        var resultado = await _userManager.ConfirmEmailAsync(usuario, token);
+
+        return resultado.Succeeded;
+    }
 }
 

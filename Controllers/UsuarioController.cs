@@ -1,7 +1,10 @@
 ﻿using FilmesAPI.Data.DTO;
+using FilmesAPI.DTO;
 using FilmesAPI.Services;
+using FilmesAPI.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+
 
 namespace FilmesAPI.Controllers;
 
@@ -11,10 +14,14 @@ public class UsuarioController : ControllerBase
 {
 
     private UsuarioService _usuarioService;
+    private RabbitMqService _rabbitMqService;
+    private IConfiguration _configuration;
 
-    public UsuarioController(UsuarioService cadastroService)
+    public UsuarioController(UsuarioService cadastroService, RabbitMqService rabbitMqService, IConfiguration configuration)
     {
         _usuarioService = cadastroService;
+        _rabbitMqService = rabbitMqService;
+        _configuration = configuration;
     }
 
     [HttpPost("cadastro")]
@@ -27,8 +34,18 @@ public class UsuarioController : ControllerBase
     [SwaggerResponse(500, "Erro interno no servidor")]
     public async Task<IActionResult> CadastraUsuario(CreateUsuarioDTO dto)
     {
-        await _usuarioService.Cadastra(dto);
-        return Ok("Usuário cadastrado com sucesso");
+        string baseUrl = _configuration["FrontEndUrl"];
+        var (usuarioId,token) = await _usuarioService.Cadastra(dto);
+        var tokenCodificado = System.Web.HttpUtility.UrlEncode(token);
+        var linkConfirmacao = $"{baseUrl}/confirmar-email?userId={usuarioId}&token={tokenCodificado}";
+        MensagemEmailDTO email = new MensagemEmailDTO();
+        email.Assunto = "Confirmação de email MoovCine";
+        email.Destinatario = dto.Email;
+        email.CorpoHtml = EmailTemplates.GetConfirmacaoTemplate(linkConfirmacao, dto.NomeCompleto.Split(" ")[0]);
+
+        await _rabbitMqService.PublicarMensagemDeEmailAsync(email);
+
+        return Ok("Usuário cadastrado com sucesso! Verifique seu e-mail.");
     }
 
     [HttpPost("login")]
@@ -41,5 +58,17 @@ public class UsuarioController : ControllerBase
     public async Task<IActionResult> Login(LoginUsuarioDTO dto) {
         var token = await _usuarioService.Login(dto);
         return Ok(token);
+    }
+
+    [HttpPost("confirmar-email")]
+    public async Task<IActionResult> ConfirmarEmail([FromBody] ConfirmarEmailDTO dto) {
+        var sucesso = await _usuarioService.ConfirmaEmail(dto.UserId, dto.Token);
+        if (sucesso)
+        {
+            return Ok(new { mensagem = "E-mail confirmado com sucesso!" });
+        }
+
+        return BadRequest(new { mensagem = "Falha ao confirmar o e-mail. Link inválido ou expirado"});
+    
     }
 }

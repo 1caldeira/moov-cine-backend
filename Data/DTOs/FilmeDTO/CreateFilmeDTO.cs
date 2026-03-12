@@ -14,4 +14,5 @@ public class CreateFilmeDTO
     public int Duracao { get; set; }
     [Required]
     public DateTime DataLancamento { get; set; }
+    public string Sinopse { get; set; }
 }

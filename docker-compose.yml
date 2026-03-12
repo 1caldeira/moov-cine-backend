@@ -20,6 +20,11 @@ services:
     container_name: moov-cine-api
     environment:
       ConnectionStrings__FilmeConnection: "server=mysql;port=3306;database=filme;user=root;password=${MYSQL_PASSWORD}"
+      FrontendUrl: "https://moovcine.site"
+      Smtp__Host: "smtp-relay.brevo.com"
+      Smtp__Port: "587"
+      Smtp__Username: "a4c60a001@smtp-brevo.com"
+      Smtp__Password: "${SMTP_PASSWORD}"
       JwtSettings__SecretKey: "${JWT_SECRET}"
       TMDB__ApiKey: "${TMDB_API_KEY}"
       AdminPassword: "${ADMIN_PASSWORD}"
@@ -30,6 +35,17 @@ services:
       mysql:
         condition: service_healthy
     restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: moov-cine-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=moovadmin
+      - RABBITMQ_DEFAULT_PASS=moovsenha123
+    restart: always
 
   caddy:
     image: caddy:latest

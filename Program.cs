@@ -2,6 +2,7 @@ using FilmesAPI.Configuration;
 using FilmesAPI.Data;
 using FilmesAPI.Models;
 using FilmesAPI.Services;
+using FilmesAPI.Workers;
 using FlimesAPI.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -68,6 +69,8 @@ builder.Services.AddScoped<FilmeService>();
 builder.Services.AddScoped<SessaoService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddHttpClient<TmdbService>();
+builder.Services.AddScoped<RabbitMqService>();
+builder.Services.AddHostedService<EmailWorker>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddHttpContextAccessor();
@@ -130,6 +133,8 @@ builder.Services.AddCors(options =>
                 "http://127.0.0.1:5500",
                 "http://moovcine.vercel.app",
                 "https://moovcine.vercel.app",
+                "https://moovcine.site",
+                "https://www.moovcine.site",
                 "http://localhost:8081",
                 "http://127.0.0.1:8081",
                 "https://localhost:8081",
