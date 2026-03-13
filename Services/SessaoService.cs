@@ -202,7 +202,12 @@ public class SessaoService
         var cinemas = await _context.Cinemas.ToListAsync();
         int contador = 0;
 
-        await _context.Sessoes.ToListAsync();
+        var sessoesExistentes = await _context.Sessoes
+        .Include(s => s.Filme)
+        .AsNoTracking()
+        .ToListAsync();
+
+        var novasSessoes = new List<Sessao>();
 
         foreach (var cinema in cinemas)
         {
@@ -235,7 +240,7 @@ public class SessaoService
                     foreach (var f in filmesPorSucesso)
                     {
                         DateTime dataTeste = hoje.Date.AddDays(1).Add(hora);
-                        if (!FilmeJaEstaNesseHorario(cinema.Id, f.Id, dataTeste))
+                        if (!FilmeJaEstaNesseHorario(cinema.Id, f.Id, dataTeste, sessoesExistentes, novasSessoes))
                         {
                             filmeEscolhido = f;
                             break;
@@ -252,7 +257,7 @@ public class SessaoService
                         if (horarioSessao < hoje) continue;
                         if (filmeEscolhido.DataLancamento.Date > dataReferencia) continue;
 
-                        if (!TemConflitoDeHorario(cinema.Id, sala, horarioSessao, filmeEscolhido.Duracao, null))
+                        if (!TemConflitoDeHorarioMemoria(cinema.Id, sala, horarioSessao, filmeEscolhido.Duracao, sessoesExistentes, novasSessoes, filmesDisponiveis))
                         {
                             _context.Sessoes.Add(new Sessao
                             {
@@ -267,14 +272,43 @@ public class SessaoService
                 }
             }
         }
+        _context.Sessoes.AddRange(novasSessoes);
         await _context.SaveChangesAsync();
         return contador;
     }
 
-    private bool FilmeJaEstaNesseHorario(int cinemaId, int filmeId, DateTime horario)
+    private bool TemConflitoDeHorarioMemoria(int cinemaId, int sala, DateTime horarioInicio, int duracaoFilme, List<Sessao> sessoesExistentes, List<Sessao> novasSessoes, List<Filme> filmesDb)
     {
-        return _context.Sessoes.Local.ToList().Any(s =>
-            s.CinemaId == cinemaId && s.FilmeId == filmeId && s.Horario == horario);
+        var horarioFim = horarioInicio.AddMinutes(duracaoFilme);
+
+        // valida no banco
+        bool temNoBanco = sessoesExistentes.Any(s =>
+            s.CinemaId == cinemaId &&
+            s.Sala == sala &&
+            s.DataExclusao == null &&
+            horarioInicio < s.Horario.AddMinutes(s.Filme.Duracao) &&
+            horarioFim > s.Horario);
+
+        if (temNoBanco) return true;
+
+        // valida nas sessões recém-criadas que ainda não foram pro banco
+        bool temNasNovas = novasSessoes.Any(s =>
+        {
+            if (s.CinemaId != cinemaId || s.Sala != sala) return false;
+            var filmeDaSessaoNova = filmesDb.First(f => f.Id == s.FilmeId);
+            var novaSessaoFim = s.Horario.AddMinutes(filmeDaSessaoNova.Duracao);
+            return horarioInicio < novaSessaoFim && horarioFim > s.Horario;
+        });
+
+        return temNasNovas;
     }
-    
+
+    private bool FilmeJaEstaNesseHorario(int cinemaId, int filmeId, DateTime horario, List<Sessao> sessoesExistentes, List<Sessao> novasSessoes)
+    {
+        bool temNoBanco = sessoesExistentes.Any(s => s.CinemaId == cinemaId && s.FilmeId == filmeId && s.Horario == horario);
+        if (temNoBanco) return true;
+
+        return novasSessoes.Any(s => s.CinemaId == cinemaId && s.FilmeId == filmeId && s.Horario == horario);
+    }
+
 }
