@@ -140,11 +140,11 @@ public class SessaoController : ControllerBase
     [HttpPost("seedsessoes")]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> SeedSessoes() {
-        var total = _sessaoService.GerarSessoesAutomaticamente();
-        if (total.Result == 0) {
+        var total = await _sessaoService.GerarSessoesAutomaticamente();
+        if (total == 0) {
             return BadRequest("Nenhuma sessão foi criada, verifique se há cinemas e filmes cadastrados!");
         }
-        return Ok(new { message = $"Sucesso! {total.Result} sessões geradas para os próximos dias." });
+        return Ok(new { message = $"Sucesso! {total} sessões geradas para os próximos dias." });
     }
 
 }
