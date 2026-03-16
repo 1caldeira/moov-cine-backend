@@ -1,4 +1,4 @@
-﻿using FilmesAPI.DTO;
+using FilmesAPI.DTO;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Net;
@@ -23,9 +23,10 @@ public class EmailWorker : BackgroundService
     {
         _logger.LogInformation("Email Worker iniciado, aguardando mensagens...");
 
+        var rabbitHost = _configuration["RabbitMQ:HostName"] ?? "rabbitmq";
         var factory = new ConnectionFactory()
         {
-            HostName = "rabbitmq",
+            HostName = rabbitHost,
             UserName = "moovadmin",
             Password = "moovsenha123",
         };
@@ -87,7 +88,7 @@ public class EmailWorker : BackgroundService
         {
             From = new MailAddress("nao-responda@moovcine.site", "Moov Cine"),
             Subject = email.Assunto,
-            Body = email.CorpoHtml,
+            Body = email.Corpo,
             IsBodyHtml = true,
         };
         mailMessage.To.Add(email.Destinatario);

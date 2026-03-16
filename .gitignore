@@ -480,3 +480,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Ignore local docker-compose override
+docker-compose.override.yml
+Caddyfile

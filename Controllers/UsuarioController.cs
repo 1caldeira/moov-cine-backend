@@ -41,7 +41,7 @@ public class UsuarioController : ControllerBase
         MensagemEmailDTO email = new MensagemEmailDTO();
         email.Assunto = "Confirmação de email MoovCine";
         email.Destinatario = dto.Email;
-        email.CorpoHtml = EmailTemplates.GetConfirmacaoTemplate(linkConfirmacao, dto.NomeCompleto.Split(" ")[0]);
+        email.Corpo = EmailTemplates.GetConfirmacaoTemplate(linkConfirmacao, dto.NomeCompleto.Split(" ")[0]);
 
         await _rabbitMqService.PublicarMensagemDeEmailAsync(email);
 
@@ -71,4 +71,26 @@ public class UsuarioController : ControllerBase
         return BadRequest(new { mensagem = "Falha ao confirmar o e-mail. Link inválido ou expirado"});
     
     }
+
+    [HttpPost("esqueci-minha-senha")]
+    public async Task<IActionResult> EsqueciMinhaSenha(EsqueciMinhaSenhaDTO dto)
+    {
+        await _usuarioService.SolicitarRecuperacaoSenha(dto);
+        return Ok(new { message = "Caso estiver cadastrado você receberá em seu e-mail um link com as instruções para redefinir a senha." });
+    }
+
+    [HttpPost("redefinir-senha")]
+    public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaDTO dto)
+    {
+        var resultado = await _usuarioService.RedefinirSenhaAsync(dto);
+
+        if (resultado.IsFailed)
+        {
+            return BadRequest(new { message = resultado.Errors.First().Message });
+        }
+
+        return Ok(new { message = "Senha redefinida com sucesso!" });
+    }
+
+
 }

@@ -1,7 +1,11 @@
 ﻿using AutoMapper;
 using FilmesAPI.Data.DTO;
+using FilmesAPI.DTO;
 using FilmesAPI.Models;
+using FluentResults;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 
 namespace FilmesAPI.Services;
 
@@ -12,15 +16,18 @@ public class UsuarioService
     private SignInManager<Usuario> _signInManager;
     private TokenService _tokenService;
     private RoleManager<IdentityRole> _roleManager;
+    private RabbitMqService _rabbitMqService;
 
     public UsuarioService(IMapper mapper, UserManager<Usuario> userManager,
-        SignInManager<Usuario> signInManager, TokenService tokenService, RoleManager<IdentityRole> roleManager)
+        SignInManager<Usuario> signInManager, TokenService tokenService, RoleManager<IdentityRole> roleManager,
+        RabbitMqService rabbitMqService)
     {
         _mapper = mapper;
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _roleManager = roleManager;
+        _rabbitMqService = rabbitMqService;
     }
 
     public async Task<string> Login(LoginUsuarioDTO dto)
@@ -58,10 +65,10 @@ public class UsuarioService
         }
 
 
-        // 4. A MÁGICA ACONTECE AQUI: O usuário já existe no banco. Vamos gerar o token!
+
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(usuario);
 
-        // 5. Devolvemos o ID e o Token juntos para o Controller
+
         return (usuario.Id.ToString(), token);
     }
 
@@ -73,6 +80,47 @@ public class UsuarioService
         var resultado = await _userManager.ConfirmEmailAsync(usuario, token);
 
         return resultado.Succeeded;
+    }
+
+    public async Task SolicitarRecuperacaoSenha(EsqueciMinhaSenhaDTO dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user == null) return;
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        byte[] tokenGeneratedBytes = Encoding.UTF8.GetBytes(token);
+        string tokenCodificadoParaUrl = WebEncoders.Base64UrlEncode(tokenGeneratedBytes);
+        string resetLink = $"https://moovcine.site/redefinir-senha?email={user.Email}&token={tokenCodificadoParaUrl}";
+
+        var mensagemFila = new MensagemEmailDTO
+        {
+            Destinatario = user.Email,
+            Assunto = "Moov Cine - Recuperação de Senha",
+            Corpo = $"<h1>Recuperação de Senha</h1><p>Olá, {user.UserName}. Clique aqui para redefinir: <a href='{resetLink}'>Redefinir Senha</a></p>"
+        };
+
+        await _rabbitMqService.PublicarMensagemDeEmailAsync(mensagemFila);
+    }
+
+    public async Task<Result> RedefinirSenhaAsync(RedefinirSenhaDTO dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user == null)
+        {
+            return Result.Fail("Usuário não encontrado.");
+        }
+        byte[] tokenDecodedBytes = WebEncoders.Base64UrlDecode(dto.Token);
+        string tokenLimpo = Encoding.UTF8.GetString(tokenDecodedBytes);
+        var resultado = await _userManager.ResetPasswordAsync(user, tokenLimpo, dto.NovaSenha);
+
+        if (resultado.Succeeded)
+        {
+            return Result.Ok();
+        }
+
+        var erros = string.Join(", ", resultado.Errors.Select(e => e.Description));
+        return Result.Fail($"Falha ao redefinir senha: {erros}");
     }
 }
 
