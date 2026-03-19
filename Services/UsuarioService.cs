@@ -33,13 +33,13 @@ public class UsuarioService
 
     public async Task<string> Login(LoginUsuarioDTO dto)
     {
-        var resultado = await _signInManager.PasswordSignInAsync(dto.Username, dto.Password, false, false);
+        var resultado = await _signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
         if (!resultado.Succeeded)
         {
             throw new ApplicationException("Usuario ou senha incorretos.");
         }
         var usuario = _signInManager.UserManager.Users.FirstOrDefault(
-            user => user.NormalizedUserName == dto.Username.ToUpper());
+            user => user.NormalizedUserName == dto.Email);
 
         var roles = await _signInManager.UserManager.GetRolesAsync(usuario);
         var roleDoUsuario = roles.FirstOrDefault() ?? "usuario";
