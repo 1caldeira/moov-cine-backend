@@ -1,4 +1,5 @@
-﻿namespace MoovCine.Tests;
+﻿using Xunit;
+namespace MoovCine.Tests;
 public class UnitTest1
 {
     [Fact]

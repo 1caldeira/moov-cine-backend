@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <NoWarn>8618,8632</NoWarn>
+    <NoWarn>8618,8632,1591</NoWarn>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <UserSecretsId>f91ca181-6c7f-4090-a04c-f9a4477361cb</UserSecretsId>
