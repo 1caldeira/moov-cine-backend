@@ -33,7 +33,15 @@ public class UsuarioService : IUsuarioService
 
     public virtual async Task<string> Login(LoginUsuarioDTO dto)
     {
-        var usuario = await _userManager.FindByEmailAsync(dto.Email);
+        // Tenta buscar por UserName primeiro (ex: "admin")
+        var usuario = await _userManager.FindByNameAsync(dto.Email);
+        
+        // Se não achou, tenta buscar por Email (ex: "user@teste.com")
+        if (usuario == null)
+        {
+            usuario = await _userManager.FindByEmailAsync(dto.Email);
+        }
+
         if (usuario == null)
         {
             throw new ApplicationException("Usuario ou senha incorretos.");
