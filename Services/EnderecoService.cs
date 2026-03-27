@@ -1,4 +1,4 @@
-﻿namespace FilmesAPI.Services;
+namespace FilmesAPI.Services;
 
 using AutoMapper;
 using FilmesAPI.Data;
@@ -6,9 +6,9 @@ using FilmesAPI.Data.DTO;
 using FilmesAPI.Models;
 using FluentResults;
 using System;
+using FilmesAPI.Services.Interfaces;
 
-
-public class EnderecoService
+public class EnderecoService : IEnderecoService
 {
     private IMapper _mapper;
     private AppDbContext _context;

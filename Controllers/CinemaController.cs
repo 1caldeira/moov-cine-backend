@@ -1,5 +1,6 @@
-﻿using FilmesAPI.Data.DTO;
+using FilmesAPI.Data.DTO;
 using FilmesAPI.Services;
+using FilmesAPI.Services.Interfaces;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
@@ -13,9 +14,9 @@ namespace FilmesAPI.Controllers;
 [Route("[controller]")]
 public class CinemaController : ControllerBase
 {
-    private CinemaService _cinemaService;
+    private ICinemaService _cinemaService;
 
-    public CinemaController(CinemaService cinemaService)
+    public CinemaController(ICinemaService cinemaService)
     {
         _cinemaService = cinemaService;
     }
@@ -129,7 +130,7 @@ public class CinemaController : ControllerBase
     public IActionResult DeletaCinema(int id) {
         Result result = _cinemaService.DeletaCinema(id);
         if (result.IsFailed) { 
-            if (result.Errors.Any(erro => erro.Message == EnderecoService.ErroNaoEncontrado))
+            if (result.Errors.Any(erro => erro.Message == CinemaService.ErroNaoEncontrado))
             {
             return NotFound(result.Errors);
             }

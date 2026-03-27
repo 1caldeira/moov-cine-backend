@@ -1,5 +1,6 @@
-﻿using FilmesAPI.Data.DTO;
+using FilmesAPI.Data.DTO;
 using FilmesAPI.Services;
+using FilmesAPI.Services.Interfaces;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
@@ -12,9 +13,9 @@ namespace FilmesAPI.Controllers;
 [Route("[controller]")]
 public class EnderecoController : ControllerBase
 {
-    private EnderecoService _enderecoService;
+    private IEnderecoService _enderecoService;
    
-    public EnderecoController(EnderecoService enderecoService)
+    public EnderecoController(IEnderecoService enderecoService)
     {
         _enderecoService = enderecoService;
     }

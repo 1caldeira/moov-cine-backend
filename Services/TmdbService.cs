@@ -1,4 +1,4 @@
-﻿using FilmesAPI.Data;
+using FilmesAPI.Data;
 using FilmesAPI.DTO;
 using FilmesAPI.DTOs.TMDB;
 using FilmesAPI.Models;
@@ -6,9 +6,9 @@ using FluentResults;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 
-namespace FilmesAPI.Services;
+using FilmesAPI.Services.Interfaces;
 
-public class TmdbService
+public class TmdbService : ITmdbService
 {
     private readonly HttpClient _httpClient;
     private readonly AppDbContext _context;

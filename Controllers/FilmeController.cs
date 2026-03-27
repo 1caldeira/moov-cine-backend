@@ -1,5 +1,6 @@
-﻿using FilmesAPI.Data.DTO;
+using FilmesAPI.Data.DTO;
 using FilmesAPI.Services;
+using FilmesAPI.Services.Interfaces;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
@@ -13,10 +14,10 @@ namespace FilmesAPI.Controllers;
 [Route("[controller]")]
 public class FilmeController : ControllerBase
 {
-    private readonly FilmeService _filmeService;
-    private readonly TmdbService _tmdbService;
+    private IFilmeService _filmeService;
+    private ITmdbService _tmdbService;
 
-    public FilmeController(FilmeService filmeService, TmdbService tmdbService)
+    public FilmeController(IFilmeService filmeService, ITmdbService tmdbService)
     {
 
          _filmeService = filmeService;

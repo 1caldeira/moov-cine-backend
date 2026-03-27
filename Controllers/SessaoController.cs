@@ -1,5 +1,6 @@
-﻿using FilmesAPI.Data.DTO;
+using FilmesAPI.Data.DTO;
 using FilmesAPI.Services;
+using FilmesAPI.Services.Interfaces;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
@@ -12,10 +13,10 @@ namespace FilmesAPI.Controllers;
 [Route("[controller]")]
 public class SessaoController : ControllerBase
 {
-    private SessaoService _sessaoService;
+    private ISessaoService _sessaoService;
     
 
-    public SessaoController(SessaoService sessaoService)
+    public SessaoController(ISessaoService sessaoService)
     {
         _sessaoService = sessaoService;
     }

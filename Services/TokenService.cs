@@ -1,13 +1,13 @@
-﻿
+
 using FilmesAPI.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace FilmesAPI.Services;
+using FilmesAPI.Services.Interfaces;
 
-public class TokenService
+public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
     public TokenService(IConfiguration configuration)

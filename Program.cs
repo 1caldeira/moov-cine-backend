@@ -1,4 +1,5 @@
 using FilmesAPI.Configuration;
+using FilmesAPI.Services.Interfaces;
 using FilmesAPI.Data;
 using FilmesAPI.Models;
 using FilmesAPI.Services;
@@ -62,14 +63,14 @@ builder.Services.ConfigureApplicationCookie(options =>
         return Task.CompletedTask;
     };
 });
-builder.Services.AddScoped<UsuarioService>();
-builder.Services.AddScoped<CinemaService>();
-builder.Services.AddScoped<EnderecoService>();
-builder.Services.AddScoped<FilmeService>();
-builder.Services.AddScoped<SessaoService>();
-builder.Services.AddScoped<TokenService>();
-builder.Services.AddHttpClient<TmdbService>();
-builder.Services.AddScoped<RabbitMqService>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<ICinemaService, CinemaService>();
+builder.Services.AddScoped<IEnderecoService, EnderecoService>();
+builder.Services.AddScoped<IFilmeService, FilmeService>();
+builder.Services.AddScoped<ISessaoService, SessaoService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddHttpClient<ITmdbService, TmdbService>();
+builder.Services.AddScoped<IRabbitMqService, RabbitMqService>();
 builder.Services.AddHostedService<EmailWorker>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

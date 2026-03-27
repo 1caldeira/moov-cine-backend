@@ -1,6 +1,7 @@
-﻿using FilmesAPI.Data.DTO;
+using FilmesAPI.Data.DTO;
 using FilmesAPI.DTO;
 using FilmesAPI.Services;
+using FilmesAPI.Services.Interfaces;
 using FilmesAPI.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -13,11 +14,11 @@ namespace FilmesAPI.Controllers;
 public class UsuarioController : ControllerBase
 {
 
-    private UsuarioService _usuarioService;
-    private RabbitMqService _rabbitMqService;
+    private IUsuarioService _usuarioService;
+    private IRabbitMqService _rabbitMqService;
     private IConfiguration _configuration;
 
-    public UsuarioController(UsuarioService cadastroService, RabbitMqService rabbitMqService, IConfiguration configuration)
+    public UsuarioController(IUsuarioService cadastroService, IRabbitMqService rabbitMqService, IConfiguration configuration)
     {
         _usuarioService = cadastroService;
         _rabbitMqService = rabbitMqService;

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FilmesAPI.Data;
 using FilmesAPI.Data.DTO;
 using FilmesAPI.Models;
@@ -8,9 +8,9 @@ using static System.Net.WebRequestMethods;
 
 
 
-namespace FilmesAPI.Services;
+namespace FilmesAPI.Services;using FilmesAPI.Services.Interfaces;
 
-public class SessaoService
+public class SessaoService : ISessaoService
 {
     private IMapper _mapper;
     private AppDbContext _context;

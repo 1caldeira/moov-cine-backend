@@ -1,4 +1,4 @@
-﻿namespace FilmesAPI.Services;
+namespace FilmesAPI.Services;
 
 using AutoMapper;
 using FilmesAPI.Data;
@@ -7,9 +7,9 @@ using FilmesAPI.Models;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using System;
+using FilmesAPI.Services.Interfaces;
 
-
-public class CinemaService
+public class CinemaService : ICinemaService
 {
     private IMapper _mapper;
     private AppDbContext _context;

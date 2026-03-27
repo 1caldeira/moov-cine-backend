@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FilmesAPI.Data.DTO;
 using FilmesAPI.DTO;
 using FilmesAPI.Models;
@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Text;
 
-namespace FilmesAPI.Services;
+namespace FilmesAPI.Services;using FilmesAPI.Services.Interfaces;
 
-public class UsuarioService
+public class UsuarioService : IUsuarioService
 {
     private IMapper _mapper;
     private UserManager<Usuario> _userManager;
@@ -31,7 +31,7 @@ public class UsuarioService
         _rabbitMqService = rabbitMqService;
     }
 
-    public async Task<string> Login(LoginUsuarioDTO dto)
+    public virtual async Task<string> Login(LoginUsuarioDTO dto)
     {
         var resultado = await _signInManager.PasswordSignInAsync(dto.Email, dto.Password, false, false);
         if (!resultado.Succeeded)
@@ -49,7 +49,7 @@ public class UsuarioService
 
     }
 
-    public async Task<(string usuarioId, string token)> Cadastra(CreateUsuarioDTO dto)
+    public virtual async Task<(string usuarioId, string token)> Cadastra(CreateUsuarioDTO dto)
     {
         Usuario? usuarioExistente = await _userManager.FindByEmailAsync(dto.Email);
         if (usuarioExistente != null) throw new ApplicationException("Já existe uma conta cadastrada com este e-mail");
@@ -73,7 +73,7 @@ public class UsuarioService
         return (usuario.Id.ToString(), token);
     }
 
-    public async Task<bool> ConfirmaEmail(string userId, string token)
+    public virtual async Task<bool> ConfirmaEmail(string userId, string token)
     {
         var usuario = await _userManager.FindByIdAsync(userId);
         if (usuario == null) return false;
@@ -83,7 +83,7 @@ public class UsuarioService
         return resultado.Succeeded;
     }
 
-    public async Task SolicitarRecuperacaoSenha(EsqueciMinhaSenhaDTO dto)
+    public virtual async Task SolicitarRecuperacaoSenha(EsqueciMinhaSenhaDTO dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null) return;
@@ -104,7 +104,7 @@ public class UsuarioService
         await _rabbitMqService.PublicarMensagemDeEmailAsync(mensagemFila);
     }
 
-    public async Task<Result> RedefinirSenhaAsync(RedefinirSenhaDTO dto)
+    public virtual async Task<Result> RedefinirSenhaAsync(RedefinirSenhaDTO dto)
     {
         var user = await _userManager.FindByEmailAsync(dto.Email);
         if (user == null)

@@ -3,9 +3,9 @@ using RabbitMQ.Client;
 using System.Text;
 using System.Text.Json;
 
-namespace FilmesAPI.Services;
+using FilmesAPI.Services.Interfaces;
 
-public class RabbitMqService
+public class RabbitMqService : IRabbitMqService
 {
     private readonly IConfiguration _configuration;
 
@@ -14,7 +14,7 @@ public class RabbitMqService
         _configuration = configuration;
     }
 
-    public async Task PublicarMensagemDeEmailAsync(MensagemEmailDTO mensagem)
+    public virtual async Task PublicarMensagemDeEmailAsync(MensagemEmailDTO mensagem)
     {
         var rabbitHost = _configuration["RabbitMQ:HostName"] ?? "rabbitmq";
         var factory = new ConnectionFactory() { HostName = rabbitHost, UserName = "moovadmin", Password="moovsenha123" };
