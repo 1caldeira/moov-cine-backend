@@ -83,7 +83,7 @@ public class FilmeService : IFilmeService
         IOrderedQueryable<Filme> queryOrdenada;
         if (dto.ApenasDisponiveis)
         {
-            queryOrdenada = query.OrderByDescending(f => f.Sessoes.Count).ThenByDescending(f => f.DataLancamento);
+            queryOrdenada = query.OrderByDescending(f => f.Popularidade).ThenByDescending(f => f.DataLancamento);
         }
         else
         {
