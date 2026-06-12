@@ -118,7 +118,7 @@ public class FilmeService : IFilmeService
                 
         }
 
-        var filme = query.FirstOrDefault(f => f.Id == id);
+        var filme = query.AsSplitQuery().FirstOrDefault(f => f.Id == id);
 
 
         if (filme == null) return null;

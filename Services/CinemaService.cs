@@ -60,7 +60,7 @@ public class CinemaService : ICinemaService
         {
             query = query.Where(cinema => cinema.EnderecoId == enderecoId);
         }
-        var listaDeCinemas = query.OrderBy(c => c.Id).Skip(skip).Take(take).ToList();
+        var listaDeCinemas = query.OrderBy(c => c.Id).Skip(skip).Take(take).AsSplitQuery().ToList();
 
         return _mapper.Map<List<ReadCinemaDTO>>(listaDeCinemas);
     }
