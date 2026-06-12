@@ -94,6 +94,7 @@ public class FilmeService : IFilmeService
         var listaFilmes = queryOrdenada
             .Skip(dto.Skip)
             .Take(dto.Take)
+            .AsSplitQuery()
             .ToList();
 
         return _mapper.Map<List<ReadFilmeDTO>>(listaFilmes);
